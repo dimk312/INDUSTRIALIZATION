@@ -516,13 +516,22 @@ $work_area=get_area();
     echo '<td width="182px" align="center" valign="top">';
 
     //---------------------- ЗАГРУЗКА ИЗОБРАЖЕНИЯ ---------------------------------------------------  
-    $sql_img="SELECT Max(task_biblioteka.DOC_ID) AS MaxOfDOC_ID, task_biblioteka.FILE_TYPE, biblioteka.FILE, task_biblioteka.FILE_NAME
-    FROM biblioteka INNER JOIN task_biblioteka ON biblioteka.BIBLIOTEKA_ID = task_biblioteka.BIBLIOTEKA_ID
-    WHERE (((task_biblioteka.TASK_ID)='".$taskinfo['TASK_ID']."') AND ((task_biblioteka.SUB_TASK)='0') AND ((task_biblioteka.CODE_DOC_TYPE)='".$foto_cod."'));";
+$sql_get_id="SELECT Max(task_biblioteka.DOC_ID) AS Max_DOC_ID
+FROM task_biblioteka
+WHERE (((task_biblioteka.TASK_ID)='".$taskinfo['TASK_ID']."') AND ((task_biblioteka.SUB_TASK)='0') AND ((task_biblioteka.CODE_DOC_TYPE)='".$foto_cod."'));";
+$query_get_id = mysqli_query($mylink['link'], $sql_get_id) or die ("Ошибка загрузки id фото <br>".mysqli_error($mylink['link']));
+$assoc_doc_id=mysqli_fetch_assoc($query_get_id);
+$img_doc_id=$assoc_doc_id['Max_DOC_ID'];
+
+$sql_img="SELECT task_biblioteka.FILE_TYPE, task_biblioteka.FILE_NAME, biblioteka.FILE
+FROM biblioteka INNER JOIN task_biblioteka ON biblioteka.BIBLIOTEKA_ID = task_biblioteka.BIBLIOTEKA_ID
+WHERE (((task_biblioteka.DOC_ID)='".$img_doc_id."') AND ((task_biblioteka.TASK_ID)='".$taskinfo['TASK_ID']."')
+ AND ((task_biblioteka.SUB_TASK)='0') AND ((task_biblioteka.CODE_DOC_TYPE)='".$foto_cod."'));";
+
     $query_img = mysqli_query($mylink['link'], $sql_img) or die ("Ошибка загрузки фото <br>".mysqli_error($mylink['link']));
     $img = mysqli_fetch_assoc($query_img);
       
-    if (($img['MaxOfDOC_ID']) != 0) {
+    if (($img_doc_id) != 0) {
             //    echo '<a href="data:'.$img['FILE_TYPE'].';base64, '.base64_encode($img['FILE']).'" target="_blank">';
         echo '<img src = "data:'.$img['FILE_TYPE'].';base64, '.base64_encode($img['FILE']).'" width="180px" vertical-align="middle"';
      //    echo '</a>'; 
