@@ -834,7 +834,7 @@ echo '</tr>';
     echo '<tr>';
     echo '<td nowrap class="FS14" align="left">&nbsp;'.$lang_interface['id_task_plan_end'];
     echo '</td>';
-    echo '<td class="textH FSB14" align="center">&nbsp;';
+    echo '<td class="textH FSB14" align="center">';
     if (isset($_POST['TASK_EDIT']) and ($access['ITDP']=='E')) { // Дата планируемого завершения работы над задачей
     echo  '<input align="center" class="FS14" name="TASK_PLAN_END" type="date" value="'.@date_my2web($taskinfo['TASK_PLAN_END']).'">';    
     } else {
