@@ -353,6 +353,13 @@ if (($_POST['action'])=='SAVE') {
     $_POST['TASK_EDIT']='';
     echo '<input type="hidden" name="TASK_EDIT">';  // Устанавливаем TASK_EDIT для того что бы после обновления опять загрузилась форма TASK_EDIT
 
+//Автоматическое зменение статуса если задана дата начала работы
+if ((($_POST['TASK_START'])!='') and (($_POST['TASK_STATUS'])=='E')){$_POST['TASK_STATUS'] ='W';}
+
+//Автоматическое заполнение даты начала если изменен статус на находится в работе
+if ((($_POST['TASK_STATUS'])=='W') and (($_POST['TASK_START'])=='')){$_POST['TASK_START'] = date('Y-m-d H:i:s');}
+
+
     $sql_up_where = " WHERE (TASK_ID = '".$_POST['TASK_ID']."') and (SUB_TASK = '0')";
     $sql_up_set = '';
 
