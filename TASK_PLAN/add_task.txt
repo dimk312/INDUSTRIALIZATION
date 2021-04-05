@@ -1,0 +1,1 @@
+    if (($access['ITAT'])=='A'){echo '<li><a href="/INDUSTRIALIZATION/TASK_PLAN/it_task.php" target="_blank">'.$lang_interface['id_add_task'].'</a></li>';} //Добавить задачу 
