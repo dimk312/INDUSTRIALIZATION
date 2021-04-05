@@ -22,6 +22,8 @@ $week_end = date("d-m-Y", strtotime('sunday this week'));
 
 
 //Загрузка справочников
+/*
+//Загрузка справочника цеха из базы
 //------------------ ЦЕХ ----------------------------------
  //Массив цехов
     $sql_w="SELECT dce_workshop.CODE_WORKSHOP, dce_workshop.NAME
@@ -36,6 +38,14 @@ while($assoc_w = mysqli_fetch_assoc($quer_w)){
     $value =$assoc_w['NAME'];
     $workshop_dc[$key] = $value;}
 //------------------------------------------------------------
+*/
+
+//Справочник для расшифровки цехов
+$workshop_dc['UKR'] = 'WH';
+$workshop_dc['UKRC'] = 'HP';
+$workshop_dc['UKRG'] = 'General';
+
+
 
 //---------------- Массив рабочих зон ------------------------
 $sql_wa="SELECT dcе_workshop_area.CODE_WORKSHOP, dcе_workshop_area.CODE_AREA, dcе_workshop_area.NAME
@@ -52,6 +62,8 @@ while($assoc_wa = mysqli_fetch_assoc($quer_wa)){
     $work_area_dc[$key] = $value;}
 //---------------------------------------------------------------    
 
+
+/*
 //------------- ПРИОРИТЕТ ---------------------------------------
 $sql_p = "SELECT dc_priority.CODE_PRIORITY, dc_priority.NAME
 FROM dc_priority
@@ -65,6 +77,9 @@ $quer_p = mysqli_query($mylink['link'], $sql_p) or die ("Ошибка загру
         $value =$assoc_p['NAME'];
         $priority_dc[$key] = $value;}
 //--------------------------------------------------------------- 
+*/
+
+
 
 //-----------------------Расшифровка ФИО ------------------------
 function get_FIO($PERSON_ID, $LANG) {
@@ -122,7 +137,7 @@ function formdate_ru2my($date) {
 $out_excel ='<H2>List of tasks of the industrialization department for the period '.$week_start.' - '.$week_end.'. (Week number - '.$week_num.')</H2>';
 $out_excel .='<br>';
 
-
+/*
 // ------------------------- НОВЫЕ ЗАДАЧИ НА НЕДЕЛЕ ----------------------------------------
 $out_excel .='<H3>New tasks set on this week.</H3>';
 $new_task_color='#B4FFB4';
@@ -173,8 +188,7 @@ while ($ASSOC_NT = mysqli_fetch_assoc($QUERY_NEW_TASK)) {
     $out_excel .='</table>';
 //-----------------------------------------------------------------------------------------
 $out_excel .='<br>';
-
-
+*/
 
 
 
@@ -210,7 +224,7 @@ $query_task_in_work=mysqli_query($mylink['link'], $SQL_TASK_IN_WORK) or die ("О
 while ($assoc_tiw = mysqli_fetch_assoc($query_task_in_work)) {
     if (($assoc_tiw['WORKSHOP'])==''){$WORKSHOP='';} else {$WORKSHOP=$workshop_dc[$assoc_tiw['WORKSHOP']];}
     if (($assoc_tiw['WORKSHOP_AREA'])==''){$AREA='';} else {$AREA=$work_area_dc[$assoc_tiw['WORKSHOP_AREA']];}
-    if (($assoc_tiw["TASK_PRIORITY"])==''){$PRIORITY='';} else {$PRIORITY=$priority_dc[$assoc_tiw['TASK_PRIORITY']];}   
+ //   if (($assoc_tiw["TASK_PRIORITY"])==''){$PRIORITY='';} else {$PRIORITY=$priority_dc[$assoc_tiw['TASK_PRIORITY']];}   
  //   prior_color($taskinfo['TASK_PRIORITY']).
 
     $out_excel .='
@@ -220,9 +234,9 @@ while ($assoc_tiw = mysqli_fetch_assoc($query_task_in_work)) {
         <td align="center">'.my2ru($assoc_tiw["TASK_START"]).'</td>
         <td align="center">'.my2ru($assoc_tiw["TASK_PLAN_END"]).'</td>
         <td align="center">'.my2ru($assoc_tiw["TASK_END"]).'</td>
-        <td>'.$WORKSHOP.'</td>
+        <td align="center">'.$WORKSHOP.'</td>
         <td>'.$AREA.'</td>
-        <td align="center" style="background:'.prior_color($assoc_tiw['TASK_PRIORITY']).';">'.$PRIORITY.'</td>
+        <td align="center" style="background:'.prior_color($assoc_tiw['TASK_PRIORITY']).';">'.$assoc_tiw['TASK_PRIORITY'].'</td>
         <td>'.get_FIO($assoc_tiw["PERSON_RESPONSIBLE"], $LANG).'</td>
         <td>'.$assoc_tiw["TASK_NAME"].'</td>
         <td>'.$assoc_tiw["TASK_DESCRIPTION"].'</td>
