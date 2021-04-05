@@ -527,9 +527,8 @@ $sql_img="SELECT task_biblioteka.FILE_TYPE, task_biblioteka.FILE_NAME, bibliotek
 FROM biblioteka INNER JOIN task_biblioteka ON biblioteka.BIBLIOTEKA_ID = task_biblioteka.BIBLIOTEKA_ID
 WHERE (((task_biblioteka.DOC_ID)='".$img_doc_id."') AND ((task_biblioteka.TASK_ID)='".$taskinfo['TASK_ID']."')
  AND ((task_biblioteka.SUB_TASK)='0') AND ((task_biblioteka.CODE_DOC_TYPE)='".$foto_cod."'));";
-
-    $query_img = mysqli_query($mylink['link'], $sql_img) or die ("Ошибка загрузки фото <br>".mysqli_error($mylink['link']));
-    $img = mysqli_fetch_assoc($query_img);
+$query_img = mysqli_query($mylink['link'], $sql_img) or die ("Ошибка загрузки фото <br>".mysqli_error($mylink['link']));
+$img = mysqli_fetch_assoc($query_img);
       
     if (($img_doc_id) != 0) {
             //    echo '<a href="data:'.$img['FILE_TYPE'].';base64, '.base64_encode($img['FILE']).'" target="_blank">';
