@@ -46,6 +46,12 @@ $workshop_dc['UKRC'] = 'HP';
 $workshop_dc['UKRG'] = 'General';
 
 
+//Справочник для расшифровки статуса
+$Status_dc['A'] = 'Done';
+$Status_dc['C'] = 'Canceled';
+$Status_dc['E'] = 'To do';
+$Status_dc['P'] = 'PAUSE';
+$Status_dc['W'] = 'In progress';
 
 //---------------- Массив рабочих зон ------------------------
 $sql_wa="SELECT dcе_workshop_area.CODE_WORKSHOP, dcе_workshop_area.CODE_AREA, dcе_workshop_area.NAME
@@ -134,7 +140,7 @@ function formdate_ru2my($date) {
     } 
 //-------------------------------------------------------
 
-$out_excel ='<H2>List of tasks of the industrialization department for the period '.$week_start.' - '.$week_end.'. (Week number - '.$week_num.')</H2>';
+$out_excel ='<H2>List of tasks of the industrialization department for the period '.$week_start.' - '.$week_end.'.<br> (Week number - '.$week_num.')</H2>';
 $out_excel .='<br>';
 
 /*
@@ -197,56 +203,69 @@ $out_excel .='<br>';
 
 
 //----------------------------- Таблица задач в процессе ----------------------------------
-$out_excel .='<H3>Tasks in progress.</H3>';
+//$out_excel .='<H3>Tasks in progress.</H3>';
 $task_in_color='#D9E1F2';
 $out_excel .='<table border="1">
 <tr>
     <th align="center" style="background:#D9E1F2;"><B>Task №</B></th>
+    <th style="background:#D9E1F2;"><B>Workshop</B></th>
+    <th style="background:#D9E1F2;"><B>Workshop area</B></th>
+    <th style="background:#D9E1F2;"><B>Task name</B></th>
+    <th style="background:#D9E1F2;"><B>Task description</B></th>
+    <th style="background:#D9E1F2;"><B>Priority</B></th>
+    <th style="background:#D9E1F2;"><B>Status</B></th>    
+    <th style="background:#D9E1F2;"><B>Responsible</B></th>
+
+</tr>';
+
+/*
     <th align="center" style="background:#D9E1F2;"><B>Date set task</B></th>
     <th align="center" style="background:#D9E1F2;"><B>Date task start</B></th>
     <th align="center" style="background:#D9E1F2;"><B>Date planned end</B></th>
     <th align="center" style="background:#D9E1F2;"><B>Date end task</B></th>
-    <th style="background:#D9E1F2;"><B>Workshop</B></th>
-    <th style="background:#D9E1F2;"><B>Workshop area</B></th>
-    <th style="background:#D9E1F2;"><B>Priority</B></th>
-    <th style="background:#D9E1F2;"><B>Responsible</B></th>
-    <th style="background:#D9E1F2;"><B>Task name</B></th>
-    <th style="background:#D9E1F2;"><B>Task description</B></th>
-</tr>';
+*/
 
-$SQL_TASK_IN_WORK='SELECT task.TASK_ID, task.TASK_SETED, task.TASK_START, task.TASK_PLAN_END, task.TASK_END, task.WORKSHOP, task.WORKSHOP_AREA, task.TASK_PRIORITY, task.PERSON_RESPONSIBLE,
- task_language.TASK_NAME, task_language.TASK_DESCRIPTION
+
+
+$SQL_TASK_IN_WORK='SELECT task.TASK_ID, task.TASK_SETED, task.TASK_START, task.TASK_PLAN_END, task.TASK_END, task.WORKSHOP, task.WORKSHOP_AREA, 
+task.TASK_PRIORITY, task.PERSON_RESPONSIBLE, task.TASK_STATUS, task_language.TASK_NAME, task_language.TASK_DESCRIPTION
 FROM task INNER JOIN task_language ON (task.SUB_TASK = task_language.SUB_TASK) AND (task.TASK_ID = task_language.TASK_ID)
-WHERE (((task_language.LANGUAGE)="'.$LANG.'") AND ((task.TASK_STATUS)="W"))
+WHERE (((task_language.LANGUAGE)="'.$LANG.'") AND (((task.TASK_STATUS)="W") or ((task.TASK_STATUS)="E") or ((task.TASK_STATUS)="P")))
 GROUP BY task.TASK_ID, task.TASK_SETED, task.TASK_START, task.TASK_PLAN_END, task.TASK_END, task.WORKSHOP, task.WORKSHOP_AREA, task.TASK_PRIORITY, task.PERSON_RESPONSIBLE,
 task_language.TASK_NAME, task_language.TASK_DESCRIPTION;';
 $query_task_in_work=mysqli_query($mylink['link'], $SQL_TASK_IN_WORK) or die ("Ошибка загрузки данных отчёта.<br>".mysqli_error($mylink['link']));
 while ($assoc_tiw = mysqli_fetch_assoc($query_task_in_work)) {
     if (($assoc_tiw['WORKSHOP'])==''){$WORKSHOP='';} else {$WORKSHOP=$workshop_dc[$assoc_tiw['WORKSHOP']];}
     if (($assoc_tiw['WORKSHOP_AREA'])==''){$AREA='';} else {$AREA=$work_area_dc[$assoc_tiw['WORKSHOP_AREA']];}
+    if (($assoc_tiw['TASK_STATUS'])==''){$STATUS='';} else {$STATUS=$Status_dc[$assoc_tiw['TASK_STATUS']];}
  //   if (($assoc_tiw["TASK_PRIORITY"])==''){$PRIORITY='';} else {$PRIORITY=$priority_dc[$assoc_tiw['TASK_PRIORITY']];}   
  //   prior_color($taskinfo['TASK_PRIORITY']).
-
-    $out_excel .='
-    <tr>
-        <td align="center">'.$assoc_tiw["TASK_ID"].'</td>
+ 
+/*
         <td align="center">'.my2ru($assoc_tiw["TASK_SETED"]).'</td>
         <td align="center">'.my2ru($assoc_tiw["TASK_START"]).'</td>
         <td align="center">'.my2ru($assoc_tiw["TASK_PLAN_END"]).'</td>
         <td align="center">'.my2ru($assoc_tiw["TASK_END"]).'</td>
+*/
+
+    $out_excel .='
+    <tr>
+        <td align="center">'.$assoc_tiw["TASK_ID"].'</td>
         <td align="center">'.$WORKSHOP.'</td>
         <td>'.$AREA.'</td>
-        <td align="center" style="background:'.prior_color($assoc_tiw['TASK_PRIORITY']).';">'.$assoc_tiw['TASK_PRIORITY'].'</td>
-        <td>'.get_FIO($assoc_tiw["PERSON_RESPONSIBLE"], $LANG).'</td>
         <td>'.$assoc_tiw["TASK_NAME"].'</td>
         <td>'.$assoc_tiw["TASK_DESCRIPTION"].'</td>
+        <td align="center" style="background:'.prior_color($assoc_tiw['TASK_PRIORITY']).';">'.$assoc_tiw['TASK_PRIORITY'].'</td>
+        <td align="center" style="background:'.status_color($assoc_tiw['TASK_STATUS']).';">'.$STATUS.'</td>       
+        <td>'.get_FIO($assoc_tiw["PERSON_RESPONSIBLE"], $LANG).'</td>
+
     </tr>';  
 }
     $out_excel .='</table>';
 //-----------------------------------------------------------------------------------------------    
 
     header('Content-Type: application/xls');
-    header('Content-Disposition: attachment; filename=report.xls');
+    header('Content-Disposition: attachment; filename=report_week_'.$week_num.'.xls');
 
 echo $out_excel;
 
