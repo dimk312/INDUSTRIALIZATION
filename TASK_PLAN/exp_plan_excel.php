@@ -147,17 +147,17 @@ $out_excel .='<br>';
 
 // ------------------------- НОВЫЕ ЗАДАЧИ НА НЕДЕЛЕ ----------------------------------------
 $out_excel .='<H3>New tasks set on this week.</H3>';
-$new_task_color='#B4FFB4';
+$new_task_color='#B4FFB4;';
 $out_excel .='<table border="1">
 <tr>
-    <th align="center" style="background:#D9E1F2;"><B>Task №</B></th>
-    <th style="background:#D9E1F2;"><B>Workshop</B></th>
-    <th style="background:#D9E1F2;"><B>Workshop area</B></th>
-    <th style="background:#D9E1F2;"><B>Task name</B></th>
-    <th style="background:#D9E1F2;"><B>Task description</B></th>
-    <th style="background:#D9E1F2;"><B>Priority</B></th>
-    <th style="background:#D9E1F2;"><B>Status</B></th>    
-    <th style="background:#D9E1F2;"><B>Responsible</B></th>
+    <th align="center" style="background:'.$new_task_color.'"><B>Task №</B></th>
+    <th style="background:'.$new_task_color.'"><B>Workshop</B></th>
+    <th style="background:'.$new_task_color.'"><B>Workshop area</B></th>
+    <th style="background:'.$new_task_color.'"><B>Task name</B></th>
+    <th style="background:'.$new_task_color.'"><B>Task description</B></th>
+    <th style="background:'.$new_task_color.'"><B>Priority</B></th>
+    <th style="background:'.$new_task_color.'"><B>Status</B></th>    
+    <th style="background:'.$new_task_color.'"><B>Responsible</B></th>
 </tr>';
 
 $SQL_NEW_TASK='SELECT task.TASK_ID, task.WORKSHOP, task.WORKSHOP_AREA, task_language.TASK_NAME, task_language.TASK_DESCRIPTION, task.TASK_PRIORITY,
@@ -187,21 +187,91 @@ while ($assoc_new = mysqli_fetch_assoc($query_new_task)) {
     </tr>';  
 }
     $out_excel .='</table><br>';
+//-------------------------------------------------------------------------------------------
 
+//----------------------------- Таблица завершенных задач ----------------------------------
+$out_excel .='<H3>Tasks completed in a week.</H3>';
+$task_fin_color='#F4A702';
+$out_excel .='<table border="1">
+<tr>
+    <th align="center" style="background:'.$task_fin_color.'"><B>Task №</B></th>
+    <th style="background:'.$task_fin_color.'"><B>Workshop</B></th>
+    <th style="background:'.$task_fin_color.'"><B>Workshop area</B></th>
+    <th style="background:'.$task_fin_color.'"><B>Task name</B></th>
+    <th style="background:'.$task_fin_color.'"><B>Task description</B></th>
+    <th style="background:'.$task_fin_color.'"><B>Priority</B></th>
+    <th style="background:'.$task_fin_color.'"><B>Status</B></th>    
+    <th style="background:'.$task_fin_color.'"><B>Responsible</B></th>
+
+</tr>';
+
+$SQL_A_NUM='SELECT task.TASK_ID
+FROM task
+WHERE (((task.TASK_STATUS)="A") AND ((task.TASK_END)<"'.$date_e.' 23:59:59" And (task.TASK_END)>"'.$date_s.' 00:00:00"))
+GROUP BY task.TASK_ID;';
+$query_a_num=mysqli_query($mylink['link'], $SQL_A_NUM) or die ("Ошибка загрузки номеров завершенных задач.<br>".mysqli_error($mylink['link']));
+while ($assoc_mum = mysqli_fetch_assoc($query_a_num)) {
+
+$SQL_COUNT_A='SELECT Count(task.TASK_ID) AS Count_ID
+FROM task
+WHERE (((task.TASK_ID)="'.$assoc_mum['TASK_ID'].'") AND ((task.TASK_STATUS)="A"));';
+$query_count_a=mysqli_query($mylink['link'], $SQL_COUNT_A) or die ("Ошибка загрузки кол-ва завешенных пунктов задач.<br>".mysqli_error($mylink['link'])); 
+$assoc_count_a = mysqli_fetch_assoc($query_count_a);
+$count_a=$assoc_count_a['Count_ID'];
+
+$SQL_COUNT_STEP='SELECT Count(task.TASK_ID) AS Count_ID
+FROM task
+WHERE (((task.TASK_ID)="'.$assoc_mum['TASK_ID'].'"));';
+$query_count_step=mysqli_query($mylink['link'], $SQL_COUNT_STEP) or die ("Ошибка загрузки кол-ва пунктов задач.<br>".mysqli_error($mylink['link'])); 
+$assoc_count_step = mysqli_fetch_assoc($query_count_step);
+$count_step=$assoc_count_step['Count_ID'];
+
+if ($count_a==$count_step){
+
+    $SQL_GET_TASK='SELECT task.TASK_ID, task.WORKSHOP, task.WORKSHOP_AREA, task_language.TASK_NAME, task_language.TASK_DESCRIPTION, task.TASK_PRIORITY,
+    task.TASK_PRIORITY, task.TASK_STATUS, task.PERSON_RESPONSIBLE
+    FROM task INNER JOIN task_language ON (task.SUB_TASK = task_language.SUB_TASK) AND (task.TASK_ID = task_language.TASK_ID)
+    WHERE (((task.SUB_TASK)="0") AND ((task_language.LANGUAGE)="'.$LANG.'"))
+    GROUP BY task.TASK_ID, task.WORKSHOP, task.WORKSHOP_AREA, task_language.TASK_NAME, task_language.TASK_DESCRIPTION, task.TASK_PRIORITY,
+    task.TASK_PRIORITY, task.TASK_STATUS, task.PERSON_RESPONSIBLE
+    HAVING (((task.TASK_ID)="'.$assoc_mum['TASK_ID'].'"));';  
+    $query_get_task=mysqli_query($mylink['link'], $SQL_GET_TASK) or die ("Ошибка загрузки данных отчёта.<br>".mysqli_error($mylink['link']));
+    $assoc_task = mysqli_fetch_assoc($query_get_task);
+        if (($assoc_task['WORKSHOP'])==''){$WORKSHOP='';} else {$WORKSHOP=$workshop_dc[$assoc_task['WORKSHOP']];}
+        if (($assoc_task['WORKSHOP_AREA'])==''){$AREA='';} else {$AREA=$work_area_dc[$assoc_task['WORKSHOP_AREA']];}
+        if (($assoc_task['TASK_STATUS'])==''){$STATUS='';} else {$STATUS=$Status_dc[$assoc_task['TASK_STATUS']];}
+     
+        $out_excel .='
+        <tr>
+            <td align="center">'.$assoc_task["TASK_ID"].'</td>
+            <td align="center">'.$WORKSHOP.'</td>
+            <td>'.$AREA.'</td>
+            <td>'.$assoc_task["TASK_NAME"].'</td>
+            <td>'.$assoc_task["TASK_DESCRIPTION"].'</td>
+            <td align="center" style="background:'.prior_color($assoc_task['TASK_PRIORITY']).';">'.$assoc_task['TASK_PRIORITY'].'</td>
+            <td align="center" style="background:'.status_color($assoc_task['TASK_STATUS']).';">'.$STATUS.'</td>       
+            <td>'.get_FIO($assoc_task["PERSON_RESPONSIBLE"], $LANG).'</td>
+    
+        </tr>';
+    }     
+}
+
+$out_excel .='</table><br>';
+//-----------------------------------------------------------------------------------------------   
 
 //----------------------------- Таблица задач в процессе ----------------------------------
 $out_excel .='<H3>Tasks in progress.</H3>';
 $task_in_color='#D9E1F2';
 $out_excel .='<table border="1">
 <tr>
-    <th align="center" style="background:#D9E1F2;"><B>Task №</B></th>
-    <th style="background:#D9E1F2;"><B>Workshop</B></th>
-    <th style="background:#D9E1F2;"><B>Workshop area</B></th>
-    <th style="background:#D9E1F2;"><B>Task name</B></th>
-    <th style="background:#D9E1F2;"><B>Task description</B></th>
-    <th style="background:#D9E1F2;"><B>Priority</B></th>
-    <th style="background:#D9E1F2;"><B>Status</B></th>    
-    <th style="background:#D9E1F2;"><B>Responsible</B></th>
+    <th align="center" style="background:'.$task_in_color.'"><B>Task №</B></th>
+    <th style="background:'.$task_in_color.'"><B>Workshop</B></th>
+    <th style="background:'.$task_in_color.'"><B>Workshop area</B></th>
+    <th style="background:'.$task_in_color.'"><B>Task name</B></th>
+    <th style="background:'.$task_in_color.'"><B>Task description</B></th>
+    <th style="background:'.$task_in_color.'"><B>Priority</B></th>
+    <th style="background:'.$task_in_color.'"><B>Status</B></th>    
+    <th style="background:'.$task_in_color.'"><B>Responsible</B></th>
 
 </tr>';
 
