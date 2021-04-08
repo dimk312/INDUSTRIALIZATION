@@ -276,12 +276,14 @@ $out_excel .='<table border="1">
 </tr>';
 
 
-$SQL_TASK_IN_WORK='SELECT task.TASK_ID, task.TASK_SETED, task.TASK_START, task.TASK_PLAN_END, task.TASK_END, task.WORKSHOP, task.WORKSHOP_AREA, 
-task.TASK_PRIORITY, task.PERSON_RESPONSIBLE, task.TASK_STATUS, task_language.TASK_NAME, task_language.TASK_DESCRIPTION
+$SQL_TASK_IN_WORK='SELECT task.TASK_ID, task.WORKSHOP, task.WORKSHOP_AREA, task.TASK_PRIORITY, task.PERSON_RESPONSIBLE, task.TASK_STATUS,
+task_language.TASK_NAME, task_language.TASK_DESCRIPTION, task_language.LANGUAGE
 FROM task INNER JOIN task_language ON (task.SUB_TASK = task_language.SUB_TASK) AND (task.TASK_ID = task_language.TASK_ID)
-WHERE (((task_language.LANGUAGE)="'.$LANG.'") AND (((task.TASK_STATUS)="W") or ((task.TASK_STATUS)="E") or ((task.TASK_STATUS)="P")))
-GROUP BY task.TASK_ID, task.TASK_SETED, task.TASK_START, task.TASK_PLAN_END, task.TASK_END, task.WORKSHOP, task.WORKSHOP_AREA, task.TASK_PRIORITY, task.PERSON_RESPONSIBLE,
-task_language.TASK_NAME, task_language.TASK_DESCRIPTION;';
+WHERE (((task.SUB_TASK)="0") AND ((task_language.LANGUAGE)="'.$LANG.'"))
+GROUP BY task.TASK_ID, task.WORKSHOP, task.WORKSHOP_AREA, task.TASK_PRIORITY, task.PERSON_RESPONSIBLE, task.TASK_STATUS, task_language.TASK_NAME, task_language.TASK_DESCRIPTION, task_language.LANGUAGE
+HAVING (((task.TASK_STATUS)="W" Or (task.TASK_STATUS)="E" Or (task.TASK_STATUS)="P"))
+ORDER BY task.TASK_ID DESC;';
+
 $query_task_in_work=mysqli_query($mylink['link'], $SQL_TASK_IN_WORK) or die ("Ошибка загрузки данных отчёта.<br>".mysqli_error($mylink['link']));
 while ($assoc_tiw = mysqli_fetch_assoc($query_task_in_work)) {
     if (($assoc_tiw['WORKSHOP'])==''){$WORKSHOP='';} else {$WORKSHOP=$workshop_dc[$assoc_tiw['WORKSHOP']];}
